@@ -51,7 +51,7 @@ const SilkCanvas = forwardRef<SilkHandle, Props>(function SilkCanvas(
     ambient = true,
     interactive = true,
     listenOn = "self",
-    fadeAfter = 30,
+    fadeAfter = 15,
     baseWidth = 2.4,
     bg = "#08070c",
     mirror = false,
@@ -305,15 +305,15 @@ const SilkCanvas = forwardRef<SilkHandle, Props>(function SilkCanvas(
 
       if ((activeRef && !activeRef.current) || document.hidden) return;
 
-      /* fade on elapsed time, not on frames: a stroke lives for fadeAfter
-         seconds whether the screen runs at 30fps or 144fps */
-      const fadeStep = Math.min(
-        0.2,
-        dt / (Math.max(4, fadeAfter) * 1000),
-      );
-      ctx.globalCompositeOperation = "destination-out";
-      ctx.fillStyle = `rgba(0, 0, 0, ${fadeStep})`;
-      ctx.fillRect(0, 0, w, h);
+    /* fade on elapsed time, not on frames: a stroke reaches ~1% of its
+       original chroma after fadeAfter seconds whether the screen runs at
+       30fps or 144fps. Without this, strokes only asymptotically approach
+       zero and stack into washed-out grey under additive blending. */
+    const decayPerSecond = Math.log(100) / Math.max(4, fadeAfter);
+    const fadeFactor = Math.exp(-decayPerSecond * dt / 1000);
+    ctx.globalCompositeOperation = "destination-out";
+    ctx.fillStyle = `rgba(0, 0, 0, ${1 - fadeFactor})`;
+    ctx.fillRect(0, 0, w, h);
 
       ctx.globalCompositeOperation = "lighter";
       ctx.lineCap = "round";
