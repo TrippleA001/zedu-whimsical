@@ -1,0 +1,44 @@
+{
+  "name": "zedu-whimsical",
+  "version": "1.0.0",
+  "private": true,
+  "description": "A WebGL and generative-audio reimagining of the Zedu learning platform.",
+  "author": "AbdulJaleel AbdulSamad",
+  "license": "MIT",
+  "homepage": "https://zedu-whimsical.vercel.app",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/TrippleA001/zedu-whimsical.git"
+  },
+  "keywords": [
+    "nextjs",
+    "react",
+    "webgl",
+    "web-audio",
+    "creative-development",
+    "interaction-design",
+    "education"
+  ],
+  "packageManager": "pnpm@12.11.2",
+  "engines": {
+    "node": ">=20.9.0"
+  },
+  "scripts": {
+    "dev": "next dev -p 3000",
+    "build": "next build",
+    "start": "next start -p 3000",
+    "typecheck": "tsc --noEmit",
+    "check": "pnpm typecheck && pnpm build"
+  },
+  "dependencies": {
+    "next": "16.3.8",
+    "react": "19.2.4",
+    "react-dom": "19.2.4"
+  },
+  "devDependencies": {
+    "@types/node": "^20.19.29",
+    "@types/react": "19.2.7",
+    "@types/react-dom": "19.2.3",
+    "typescript": "^5.4.5"
+  }
+}
