@@ -7,6 +7,7 @@ import DoodleModal from "~/components/doodle-modal";
 import BuzzRoom from "~/components/buzz-room";
 import CommandPalette from "~/components/command-palette";
 import Drawer from "~/components/drawer";
+import { ThemeRailToggle } from "~/components/theme";
 import {
   ME,
   autoReplies,
@@ -756,6 +757,8 @@ export default function StudioApp() {
         >
           <Icon name={sound ? "sound-on" : "sound-off"} />
         </button>
+
+        <ThemeRailToggle />
 
         <button
           className="rail__btn"

@@ -1,5 +1,7 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
+import Script from "next/script";
 import "./globals.css";
+import ThemeProvider, { themeBootstrapScript } from "~/components/theme";
 
 export const metadata: Metadata = {
   title: {
@@ -9,12 +11,26 @@ export const metadata: Metadata = {
     "Zedu is an AI-powered education platform built for bootcamps and learning communities. Organize cohorts, run classes, manage communication, and scale modern learning in one workspace.",
 };
 
+export const viewport: Viewport = {
+  colorScheme: "dark light",
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#f6f4fb" },
+    { media: "(prefers-color-scheme: dark)", color: "#08070c" },
+  ],
+};
+
 export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <head>
+        <Script
+          id="theme-bootstrap"
+          strategy="beforeInteractive"
+          // sets data-theme before first paint so light mode never flashes dark
+          dangerouslySetInnerHTML={{ __html: themeBootstrapScript }}
+        />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link
           rel="preconnect"
@@ -26,7 +42,9 @@ export default function RootLayout({
           rel="stylesheet"
         />
       </head>
-      <body>{children}</body>
+      <body>
+        <ThemeProvider defaultTheme="system">{children}</ThemeProvider>
+      </body>
     </html>
   );
 }
