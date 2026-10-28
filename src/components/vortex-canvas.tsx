@@ -42,8 +42,7 @@ vec3 hsv2rgb(vec3 c) {
 
 void main() {
   float trail = aTrail;
-  float isHalo = step(2.5, trail);
-  float isTail = step(0.5, trail) * (1.0 - isHalo);
+  float isTail = step(0.5, trail);
   float r = mod(aRadius - uTime * (0.0032 + uP * 0.0068), 1.0);
   float angle = aAngle
     + uTime * (0.10 + 0.55 / (r + 0.22)) * aSpeed
@@ -65,15 +64,15 @@ void main() {
   vec2 clip = vec2((xy.x / uRes.x) * 2.0 - 1.0, 1.0 - (xy.y / uRes.y) * 2.0);
   gl_Position = vec4(clip, 0.0, 1.0);
 
-  float sizeScale = mix(1.0 - isTail * trail * 0.25, 2.7, isHalo);
+  float sizeScale = 1.0 - isTail * trail * 0.22;
   gl_PointSize = min(
-    42.0,
-    aSize * persp * (0.75 + uP * 0.55) * sizeScale * uDpr * 6.5
+    14.0,
+    aSize * persp * (0.75 + uP * 0.55) * sizeScale * uDpr * 3.4
   );
 
   float edge = smoothstep(0.0, 0.06, r) * (1.0 - smoothstep(0.92, 1.03, r));
   float twinkle = 0.68 + 0.32 * sin(uTime * 1.4 + aPhase * 6.2831);
-  float alphaScale = mix(1.0 - isTail * trail * 0.28, 0.11, isHalo);
+  float alphaScale = 1.0 - isTail * trail * 0.26;
   vAlpha = edge * twinkle * alphaScale * (0.55 + persp * 0.75);
   vColor = hsv2rgb(vec3(aHue / 360.0, 0.74, 1.0));
 }
@@ -262,7 +261,10 @@ export default function VortexCanvas({
     /* ---------------- geometry ---------------- */
 
     const baseCount = coarse ? 1600 : 5500;
-    const trailCount = 4;
+    /* three trail copies per particle: the head plus two fading echoes.
+       There is no oversized halo layer — the whirlpool is made of small
+       sparks only. */
+    const trailCount = 3;
     const particleData = new Float32Array(baseCount * trailCount * 7);
     let offset = 0;
     for (let i = 0; i < baseCount; i++) {
