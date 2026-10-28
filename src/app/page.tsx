@@ -17,6 +17,8 @@ import {
 } from "~/components/motion";
 import { cn } from "~/lib/utils";
 import { playCue, setAmbienceIntensity } from "~/lib/sound";
+import Logo from "~/components/logo";
+import { ThemeToggle, useTheme } from "~/components/theme";
 
 /* ------------------------------------------------------------------ data */
 
@@ -368,7 +370,7 @@ export default function LandingPage() {
       <div className="landing-content">
         <nav className={`nav${stuck ? " is-stuck" : ""}`}>
           <Link href="/" className="nav__brand" aria-label="Zedu home">
-            <span className="nav__mark" />
+            <Logo variant="nav" className="nav__mark" />
             ZEDU
           </Link>
 
@@ -417,6 +419,7 @@ export default function LandingPage() {
 
           <div className="nav__right">
             <SoundToggle />
+            <ThemeToggle />
             <Link href="/studio" className="btn btn--ghost btn--sm">
               Log in
             </Link>

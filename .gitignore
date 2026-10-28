@@ -6,6 +6,8 @@ node_modules/
 .next/
 out/
 build/
+AGENTS.md
+next-env.d.ts
 
 # Build artefacts
 *.tsbuildinfo
