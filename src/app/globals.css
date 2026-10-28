@@ -103,6 +103,8 @@ img {
   --teal: #2be3cf;
   --acid: #ffe900;
   --grad-from: #fff;
+  /* far end of the impact equaliser bars */
+  --eq-base: rgba(113, 65, 248, 0.32);
 
   --font-display: "Instrument Serif", "Iowan Old Style", Georgia, serif;
   --font-ui: "Space Grotesk", ui-sans-serif, system-ui, -apple-system, sans-serif;
@@ -147,6 +149,8 @@ img {
   --teal: #077a72;
   --acid: #a58f00;
   --grad-from: #1a1330;
+  /* the bars need real pigment on paper, not a 32% wash */
+  --eq-base: rgba(91, 46, 224, 0.62);
 
   --shadow-lift: 0 24px 60px -26px rgba(24, 16, 48, 0.2);
   --glow-violet: 0 0 0 1px rgba(106, 55, 240, 0.16),
@@ -6089,7 +6093,7 @@ a.set-row:hover {
   flex: 1;
   height: 20%;
   border-radius: 2px;
-  background: linear-gradient(180deg, var(--teal), rgba(113, 65, 248, 0.32));
+  background: linear-gradient(180deg, var(--teal), var(--eq-base));
   opacity: 0.8;
   animation: eq 1.7s var(--ease-in-out) infinite;
   animation-delay: calc(var(--i) * -0.085s);
@@ -6123,7 +6127,7 @@ a.set-row:hover {
 
 .metrics__copy h3 em {
   font-style: italic;
-  background: linear-gradient(100deg, #c4b5fd, #2be3cf 75%);
+  background: linear-gradient(100deg, var(--violet-soft), var(--teal) 75%);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
