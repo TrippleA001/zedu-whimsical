@@ -63,6 +63,19 @@ function Avatar({
   );
 }
 
+type Burst = {
+  id: number;
+  bx: number;
+  by: number;
+  mx: number;
+  my: number;
+  rot: number;
+  mrot: number;
+  size: number;
+  delay: number;
+  glyph: string;
+};
+
 function ReactionChip({
   reaction,
   mine,
@@ -72,38 +85,86 @@ function ReactionChip({
   mine: boolean;
   onToggle: () => void;
 }) {
-  const [bursts, setBursts] = useState<
-    { id: number; bx: number; by: number }[]
-  >([]);
+  const [bursts, setBursts] = useState<Burst[]>([]);
+  const [popping, setPopping] = useState(false);
+  const timers = useRef<number[]>([]);
 
+  useEffect(
+    () => () => {
+      timers.current.forEach((timer) => window.clearTimeout(timer));
+    },
+    [],
+  );
+
+  /* Telegram-ish: the glyph fans out in a handful of copies rather than
+     a couple of coloured dots, so the tap reads from across the room. */
   const fire = () => {
-    const id = Date.now() + Math.random();
-    const bx = (Math.random() - 0.5) * 34;
-    const by = -12 - Math.random() * 18;
-    setBursts((b) => [...b, { id, bx, by }]);
-    window.setTimeout(
-      () => setBursts((b) => b.filter((item) => item.id !== id)),
-      640,
+    const stamp = Date.now();
+    const particles: Burst[] = Array.from({ length: 7 }, (_, i) => {
+      const spread = (i - 3) / 3;
+      const bx = spread * (30 + Math.random() * 30);
+      const by = -24 - Math.random() * 34;
+      const rot = spread * 60 + (Math.random() - 0.5) * 24;
+      return {
+        id: stamp + i,
+        bx,
+        by,
+        mx: bx * 0.35,
+        my: by * 0.45,
+        rot,
+        mrot: rot * 0.3,
+        size: 10 + Math.random() * 7,
+        delay: Math.round(Math.random() * 70),
+        glyph: reaction.emoji,
+      };
+    });
+
+    setBursts((current) => [...current, ...particles]);
+    setPopping(true);
+
+    timers.current.push(
+      window.setTimeout(
+        () =>
+          setBursts((current) =>
+            current.filter((item) => !particles.some((p) => p.id === item.id)),
+          ),
+        900,
+      ),
+      window.setTimeout(() => setPopping(false), 480),
     );
+
     onToggle();
   };
 
   return (
     <button
-      className={cn("reaction", mine && "is-mine")}
+      className={cn("reaction", mine && "is-mine", popping && "is-popping")}
       onClick={fire}
       aria-pressed={mine}
       aria-label={`${reaction.emoji} ${reaction.by.length}`}
     >
-      <span>{reaction.emoji}</span>
+      <span className="reaction__emoji">{reaction.emoji}</span>
       <span className="reaction__count">{reaction.by.length}</span>
-      {bursts.map((b) => (
-        <i
-          key={b.id}
-          className="burst"
-          style={{ ["--bx" as string]: `${b.bx}px`, ["--by" as string]: `${b.by}px` }}
-        />
-      ))}
+      <span className="reaction__bursts" aria-hidden>
+        {bursts.map((b) => (
+          <i
+            key={b.id}
+            className="burst"
+            style={{
+              ["--bx" as string]: `${b.bx}px`,
+              ["--by" as string]: `${b.by}px`,
+              ["--mx" as string]: `${b.mx}px`,
+              ["--my" as string]: `${b.my}px`,
+              ["--rot" as string]: `${b.rot}deg`,
+              ["--mrot" as string]: `${b.mrot}deg`,
+              ["--size" as string]: `${b.size}px`,
+              animationDelay: `${b.delay}ms`,
+            }}
+          >
+            {b.glyph}
+          </i>
+        ))}
+      </span>
     </button>
   );
 }
@@ -774,10 +835,6 @@ export default function StudioApp() {
 
         <button
           className="rail__avatar"
-          style={{
-            background:
-              "radial-gradient(circle at 32% 28%, #c9b8ff, transparent 45%), linear-gradient(150deg, #8b5cf6, #4c1fd1)",
-          }}
           title="You — Instructor"
           aria-label="Your profile"
           onClick={() => notify("You. Instructor. Currently delightful.")}
@@ -895,14 +952,7 @@ export default function StudioApp() {
             gap: 10,
           }}
         >
-          <span
-            className="orb"
-            style={{
-              ["--h" as string]: 262,
-              background:
-                "radial-gradient(circle at 32% 28%, #c9b8ff, transparent 45%), linear-gradient(150deg, #8b5cf6, #4c1fd1)",
-            }}
-          >
+          <span className="orb" style={{ ["--h" as string]: 262 }}>
             Y
           </span>
           <div style={{ minWidth: 0, flex: 1 }}>

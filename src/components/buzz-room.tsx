@@ -54,8 +54,8 @@ export default function BuzzRoom({
           hues={[258, 172, 330]}
           ambient
           interactive={false}
-          fadeAfter={18}
-          baseWidth={2}
+          fadeAfter={11}
+          baseWidth={1.1}
         />
         <div className="buzz__inner">
           <div className="buzz__top">
