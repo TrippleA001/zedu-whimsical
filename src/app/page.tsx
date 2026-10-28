@@ -7,6 +7,7 @@ import VortexCanvas from "~/components/vortex-canvas";
 import TourMock from "~/components/tour-mock";
 import Icon from "~/components/icon";
 import SoundToggle from "~/components/sound-toggle";
+import { ThemeToggle } from "~/components/theme";
 import {
   CountUp,
   Cursor,
@@ -416,6 +417,7 @@ export default function LandingPage() {
           </div>
 
           <div className="nav__right">
+            <ThemeToggle />
             <SoundToggle />
             <Link href="/studio" className="btn btn--ghost btn--sm">
               Log in
