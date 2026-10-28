@@ -37,11 +37,11 @@ export const resolveTheme = (theme: Theme): Resolved => {
 };
 
 /** Paint the document before React hydrates so there is no flash of dark. */
-export const themeBootstrapScript = `(function(){try{var t=localStorage.getItem("${THEME_KEY}");if(t!=="light"&&t!=="dark"&&t!=="system"){t="system"}var m=window.matchMedia("(prefers-color-scheme: light)");var r=t==="system"?(m.matches?"light":"dark"):t;var d=document.documentElement;d.dataset.theme=r;d.style.colorScheme=r}catch(e){}})()`;
+export const themeBootstrapScript = `(function(){try{var t=localStorage.getItem("${THEME_KEY}");if(t!=="light"&&t!=="dark"&&t!=="system"){t="dark"}var m=window.matchMedia("(prefers-color-scheme: light)");var r=t==="system"?(m.matches?"light":"dark"):t;var d=document.documentElement;d.dataset.theme=r;d.style.colorScheme=r}catch(e){}})()`;
 
 export default function ThemeProvider({
   children,
-  defaultTheme = "system",
+  defaultTheme = "dark",
 }: {
   children: React.ReactNode;
   defaultTheme?: Theme;
@@ -115,54 +115,51 @@ export function useTheme() {
   return ctx;
 }
 
-const OPTIONS: Array<{ id: Theme; label: string; icon: "monitor" | "sun" | "moon" }> =
-  [
-    { id: "system", label: "Match system", icon: "monitor" },
-    { id: "light", label: "Light", icon: "sun" },
-    { id: "dark", label: "Dark", icon: "moon" },
-  ];
+const APPEARANCE: Record<
+  Theme,
+  { label: string; icon: "monitor" | "sun" | "moon"; next: Theme }
+> = {
+  dark: { label: "Dark", icon: "moon", next: "light" },
+  light: { label: "Light", icon: "sun", next: "system" },
+  system: { label: "Match system", icon: "monitor", next: "dark" },
+};
 
-/** Rail-sized icon button for the studio: flips between light and dark. */
+/** Rail-sized icon button for the studio: cycles dark → light → system. */
 export function ThemeRailToggle() {
-  const { resolved, setTheme } = useTheme();
-  const isLight = resolved === "light";
+  const { theme, setTheme } = useTheme();
+  const current = APPEARANCE[theme];
 
   return (
     <button
       type="button"
-      className={`rail__btn${isLight ? " is-on" : ""}`}
-      onClick={() => setTheme(isLight ? "dark" : "light")}
-      title={isLight ? "Switch to dark" : "Switch to light"}
-      aria-label={isLight ? "Switch to dark theme" : "Switch to light theme"}
+      className={`rail__btn${theme !== "dark" ? " is-on" : ""}`}
+      onClick={() => setTheme(current.next)}
+      title={`${current.label} — switch to ${APPEARANCE[current.next].label}`}
+      aria-label={`Theme: ${current.label}. Switch to ${APPEARANCE[current.next].label}.`}
     >
-      <Icon name={isLight ? "moon" : "sun"} />
+      <Icon name={current.icon} />
     </button>
   );
 }
 
-/** Three-way appearance switch: system, light, dark. */
+/**
+ * One button, three states: dark → light → system → dark. The icon shows
+ * the current choice; the tooltip says what the next click will do.
+ */
 export function ThemeToggle({ className }: { className?: string }) {
   const { theme, setTheme } = useTheme();
+  const current = APPEARANCE[theme];
+  const next = APPEARANCE[current.next];
 
   return (
-    <div
+    <button
+      type="button"
       className={`theme-toggle${className ? ` ${className}` : ""}`}
-      role="group"
-      aria-label="Colour theme"
+      onClick={() => setTheme(current.next)}
+      title={`${current.label} — switch to ${next.label}`}
+      aria-label={`Theme: ${current.label}. Switch to ${next.label}.`}
     >
-      {OPTIONS.map((option) => (
-        <button
-          key={option.id}
-          type="button"
-          className={`theme-toggle__opt${theme === option.id ? " is-on" : ""}`}
-          onClick={() => setTheme(option.id)}
-          aria-pressed={theme === option.id}
-          title={option.label}
-          aria-label={option.label}
-        >
-          <Icon name={option.icon} size={14} />
-        </button>
-      ))}
-    </div>
+      <Icon name={current.icon} size={15} />
+    </button>
   );
 }
