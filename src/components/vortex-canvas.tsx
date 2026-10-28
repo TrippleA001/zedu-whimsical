@@ -94,64 +94,6 @@ void main() {
 }
 `;
 
-const LINE_VS = `
-precision highp float;
-
-attribute float aRadius;
-attribute float aAngle;
-attribute float aHue;
-attribute float aAlpha;
-
-uniform float uTime;
-uniform float uP;
-uniform vec2 uRes;
-uniform vec2 uCenter;
-uniform float uBase;
-uniform float uZoom;
-uniform float uRoll;
-uniform float uDpr;
-
-varying vec3 vColor;
-varying float vAlpha;
-
-vec3 hsv2rgb(vec3 c) {
-  vec3 p = abs(fract(c.xxx + vec3(0.0, 2.0 / 3.0, 1.0 / 3.0)) * 6.0 - 3.0);
-  return c.z * mix(vec3(1.0), clamp(p - 1.0, 0.0, 1.0), c.y);
-}
-
-void main() {
-  float r = aRadius;
-  float angle = aAngle + uRoll * 1.35 + uTime * 0.07;
-
-  float px = cos(angle) * r;
-  float py = sin(angle) * r;
-  float depth = py * 0.581;
-  float y = py * 0.814;
-  float cr = cos(uRoll);
-  float sr = sin(uRoll);
-  float rx = px * cr - y * sr;
-  float ry = px * sr + y * cr;
-  float persp = 1.0 / (1.0 + (depth + 1.0) * 0.22);
-
-  vec2 xy = uCenter + vec2(rx, ry) * uBase * persp * uZoom;
-  vec2 clip = vec2((xy.x / uRes.x) * 2.0 - 1.0, 1.0 - (xy.y / uRes.y) * 2.0);
-  gl_Position = vec4(clip, 0.0, 1.0);
-
-  vColor = hsv2rgb(vec3(aHue / 360.0, 0.82, 1.0));
-  vAlpha = aAlpha * (0.35 + persp * 0.65) * (0.85 + uP * 0.35);
-}
-`;
-
-const LINE_FS = `
-precision mediump float;
-varying vec3 vColor;
-varying float vAlpha;
-
-void main() {
-  gl_FragColor = vec4(vColor, vAlpha);
-}
-`;
-
 const CORE_VS = `
 precision highp float;
 attribute vec2 aPos;
@@ -303,14 +245,12 @@ export default function VortexCanvas({
     };
 
     const particleProgram = makeProgram(PARTICLE_VS, PARTICLE_FS);
-    const lineProgram = makeProgram(LINE_VS, LINE_FS);
     const coreProgram = makeProgram(CORE_VS, CORE_FS);
     const fadeProgram = makeProgram(QUAD_VS, FADE_FS);
     const copyProgram = makeProgram(QUAD_VS, COPY_FS);
 
     if (
       !particleProgram ||
-      !lineProgram ||
       !coreProgram ||
       !fadeProgram ||
       !copyProgram
@@ -351,47 +291,6 @@ export default function VortexCanvas({
     const particleBuffer = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, particleBuffer);
     gl.bufferData(gl.ARRAY_BUFFER, particleData, gl.STATIC_DRAW);
-
-    /* ribbons + rings share one line buffer: 4 floats per vertex */
-    const ribbonSegments = 80;
-    const ribbonArms = 5;
-    const ringSegments = 96;
-    const ringRadii = [0.2, 0.31, 0.42];
-    const ringHues = [276, 190, 330];
-    const ribbonVertices = ribbonArms * (ribbonSegments + 1);
-    const lineData = new Float32Array(
-      (ribbonVertices + ringRadii.length * (ringSegments + 1)) * 4,
-    );
-
-    let lineOffset = 0;
-    for (let arm = 0; arm < ribbonArms; arm++) {
-      const hue = HUES[arm];
-      for (let i = 0; i <= ribbonSegments; i++) {
-        const t = i / ribbonSegments;
-        const r = 0.075 + t * 1.02;
-        const a =
-          arm * (TAU / ARMS) +
-          Math.log(r * 4 + 1) * 1.45 +
-          Math.sin(t * Math.PI * 2.4 + arm) * 0.05;
-        const edge = Math.sin(t * Math.PI);
-        lineData[lineOffset++] = r;
-        lineData[lineOffset++] = a;
-        lineData[lineOffset++] = hue;
-        lineData[lineOffset++] = 0.08 + edge * 0.32;
-      }
-    }
-    for (let ring = 0; ring < ringRadii.length; ring++) {
-      for (let i = 0; i <= ringSegments; i++) {
-        lineData[lineOffset++] = ringRadii[ring];
-        lineData[lineOffset++] = (i / ringSegments) * TAU;
-        lineData[lineOffset++] = ringHues[ring];
-        lineData[lineOffset++] = 0.42;
-      }
-    }
-
-    const lineBuffer = gl.createBuffer();
-    gl.bindBuffer(gl.ARRAY_BUFFER, lineBuffer);
-    gl.bufferData(gl.ARRAY_BUFFER, lineData, gl.STATIC_DRAW);
 
     const quadBuffer = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, quadBuffer);
@@ -512,21 +411,6 @@ export default function VortexCanvas({
       uDpr: gl.getUniformLocation(particleProgram, "uDpr"),
     };
 
-    const lineLoc = {
-      aRadius: gl.getAttribLocation(lineProgram, "aRadius"),
-      aAngle: gl.getAttribLocation(lineProgram, "aAngle"),
-      aHue: gl.getAttribLocation(lineProgram, "aHue"),
-      aAlpha: gl.getAttribLocation(lineProgram, "aAlpha"),
-      uTime: gl.getUniformLocation(lineProgram, "uTime"),
-      uP: gl.getUniformLocation(lineProgram, "uP"),
-      uRes: gl.getUniformLocation(lineProgram, "uRes"),
-      uCenter: gl.getUniformLocation(lineProgram, "uCenter"),
-      uBase: gl.getUniformLocation(lineProgram, "uBase"),
-      uZoom: gl.getUniformLocation(lineProgram, "uZoom"),
-      uRoll: gl.getUniformLocation(lineProgram, "uRoll"),
-      uDpr: gl.getUniformLocation(lineProgram, "uDpr"),
-    };
-
     const coreLoc = {
       aPos: gl.getAttribLocation(coreProgram, "aPos"),
       uRes: gl.getUniformLocation(coreProgram, "uRes"),
@@ -635,41 +519,6 @@ export default function VortexCanvas({
       gl.uniform1f(coreLoc.uP, p);
       gl.drawArrays(gl.TRIANGLES, 0, 6);
 
-      /* ribbons + accretion rings */
-      gl.useProgram(lineProgram);
-      gl.bindBuffer(gl.ARRAY_BUFFER, lineBuffer);
-      const lineStride = 4 * 4;
-      gl.enableVertexAttribArray(lineLoc.aRadius);
-      gl.vertexAttribPointer(lineLoc.aRadius, 1, gl.FLOAT, false, lineStride, 0);
-      gl.enableVertexAttribArray(lineLoc.aAngle);
-      gl.vertexAttribPointer(lineLoc.aAngle, 1, gl.FLOAT, false, lineStride, 4);
-      gl.enableVertexAttribArray(lineLoc.aHue);
-      gl.vertexAttribPointer(lineLoc.aHue, 1, gl.FLOAT, false, lineStride, 8);
-      gl.enableVertexAttribArray(lineLoc.aAlpha);
-      gl.vertexAttribPointer(lineLoc.aAlpha, 1, gl.FLOAT, false, lineStride, 12);
-
-      gl.uniform1f(lineLoc.uTime, clock);
-      gl.uniform1f(lineLoc.uP, p);
-      gl.uniform2f(lineLoc.uRes, w, h);
-      gl.uniform2f(lineLoc.uCenter, cx, cy);
-      gl.uniform1f(lineLoc.uBase, base);
-      gl.uniform1f(lineLoc.uZoom, zoom);
-      gl.uniform1f(lineLoc.uRoll, roll);
-      gl.uniform1f(lineLoc.uDpr, dpr);
-
-      for (let arm = 0; arm < ribbonArms; arm++) {
-        gl.drawArrays(gl.LINE_STRIP, arm * (ribbonSegments + 1), ribbonSegments + 1);
-      }
-      const ringStart = ribbonVertices;
-      for (let ring = 0; ring < ringRadii.length; ring++) {
-        gl.drawArrays(
-          gl.LINE_LOOP,
-          ringStart + ring * (ringSegments + 1),
-          ringSegments + 1,
-        );
-      }
-
-      /* particle field */
       gl.useProgram(particleProgram);
       gl.bindBuffer(gl.ARRAY_BUFFER, particleBuffer);
       const particleStride = 7 * 4;
@@ -784,14 +633,12 @@ export default function VortexCanvas({
       document.removeEventListener("visibilitychange", onVisibility);
       canvas.removeEventListener("webglcontextlost", onContextLost);
       gl.deleteBuffer(particleBuffer);
-      gl.deleteBuffer(lineBuffer);
       gl.deleteBuffer(quadBuffer);
       for (const target of targets) {
         gl.deleteFramebuffer(target.fbo);
         gl.deleteTexture(target.tex);
       }
       gl.deleteProgram(particleProgram);
-      gl.deleteProgram(lineProgram);
       gl.deleteProgram(coreProgram);
       gl.deleteProgram(fadeProgram);
       gl.deleteProgram(copyProgram);

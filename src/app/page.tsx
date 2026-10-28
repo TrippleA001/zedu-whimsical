@@ -7,6 +7,7 @@ import VortexCanvas from "~/components/vortex-canvas";
 import TourMock from "~/components/tour-mock";
 import Icon from "~/components/icon";
 import SoundToggle from "~/components/sound-toggle";
+import LogoMark from "~/components/logo";
 import { ThemeToggle } from "~/components/theme";
 import {
   CountUp,
@@ -369,7 +370,7 @@ export default function LandingPage() {
       <div className="landing-content">
         <nav className={`nav${stuck ? " is-stuck" : ""}`}>
           <Link href="/" className="nav__brand" aria-label="Zedu home">
-            <span className="nav__mark" />
+            <LogoMark className="nav__mark" priority />
             ZEDU
           </Link>
 
@@ -1034,6 +1035,7 @@ export default function LandingPage() {
           <div className="footer__grid">
             <div>
               <div className="footer__brand">
+                <LogoMark className="footer__mark" />
                 Zedu<em>.</em>
               </div>
               <p

@@ -7,6 +7,7 @@ import DoodleModal from "~/components/doodle-modal";
 import BuzzRoom from "~/components/buzz-room";
 import CommandPalette from "~/components/command-palette";
 import Drawer from "~/components/drawer";
+import LogoMark from "~/components/logo";
 import { ThemeRailToggle } from "~/components/theme";
 import {
   ME,
@@ -688,7 +689,9 @@ export default function StudioApp() {
           className="rail__logo"
           aria-label="Back to the stage"
           title="Back to the stage"
-        />
+        >
+          <LogoMark />
+        </Link>
 
         <nav className="rail__nav">
           <Link href="/" className="rail__btn" title="Home" aria-label="Home">
