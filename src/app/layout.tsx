@@ -43,7 +43,7 @@ export default function RootLayout({
         />
       </head>
       <body>
-        <ThemeProvider defaultTheme="system">{children}</ThemeProvider>
+        <ThemeProvider defaultTheme="dark">{children}</ThemeProvider>
       </body>
     </html>
   );
